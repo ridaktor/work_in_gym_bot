@@ -12,8 +12,8 @@ from loader import bot, dp
 @dp.message_handler(text='Ввод данных', state=None)
 @dp.message_handler(Command('anthropometry'), state=None)
 async def get_anthropometry(message: types.Message, state: FSMContext):
-    await message.answer('Введи рост в см', reply_markup=choice)
-    await Anthropometrics.body_height.set()
+    await message.answer('Введи вес в кг', reply_markup=choice)
+    await Anthropometrics.body_weight.set()
     message_id = message.message_id + 1
     await state.update_data(
         {"message_id": message_id}
@@ -21,7 +21,7 @@ async def get_anthropometry(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(text="next", state="*")
-@dp.message_handler(state=Anthropometrics.body_height)
+@dp.message_handler(state=Anthropometrics.body_weight)
 async def get_body_height(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = await answer_check(answer, message)
@@ -30,9 +30,9 @@ async def get_body_height(message: types.Message, state: FSMContext):
     if filtered_answer:
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
-            {"Рост": filtered_answer}
+            {"Вес": filtered_answer}
         )
-        await message.answer('Введи вес в кг', reply_markup=choice)
+        await message.answer('Введи рост в см', reply_markup=choice)
         await Anthropometrics.next()
         message_id = message.message_id + 1
         await state.update_data(
@@ -40,7 +40,7 @@ async def get_body_height(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(text="next", state="*")
-@dp.message_handler(state=Anthropometrics.body_weight)
+@dp.message_handler(state=Anthropometrics.body_height)
 async def get_body_weight(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = await answer_check(answer, message)
@@ -49,7 +49,7 @@ async def get_body_weight(message: types.Message, state: FSMContext):
     if filtered_answer:
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
-            {"Вес": filtered_answer}
+            {"Рост": filtered_answer}
         )
         await message.answer('Сбор данных завершен', reply_markup=start_keyboard)
         await state.reset_state(with_data=False)  # finish (reset only state)
@@ -64,7 +64,8 @@ async def show_anthropometry(message: types.Message, state: FSMContext):
         data.pop('message_id')
 
     if data:
-        await message.answer('\n'.join("{}: {}".format(k, v) for k, v in data.items()), reply_markup=start_keyboard)
+        await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'Вес' else "{}: {} см".format(k, v)
+                                       for k, v in data.items()), reply_markup=start_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=start_keyboard)
 
@@ -87,7 +88,7 @@ async def next_getting(call: CallbackQuery, state: FSMContext):
         regex = '|'.join(sub_dict)
         answer = re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))
         await call.message.delete_reply_markup()
-        await call.message.answer(f'Введи {answer}', reply_markup=choice)
+        await call.message.answer(f'Введи {answer} в см', reply_markup=choice)
     else:
         await call.message.delete_reply_markup()
         await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
