@@ -14,7 +14,7 @@ from loader import bot, dp
 async def get_anthropometry(message: types.Message, state: FSMContext):
     await message.answer('Введи вес в кг', reply_markup=choice)
     await Anthropometrics.body_weight.set()
-    message_id = message.message_id + 1
+    message_id = message.message_id+1
     await state.update_data(
         {"message_id": message_id}
     )
@@ -36,7 +36,8 @@ async def get_body_height(message: types.Message, state: FSMContext):
         await Anthropometrics.next()
         message_id = message.message_id + 1
         await state.update_data(
-            {"message_id": message_id})
+            {"message_id": message_id}
+        )
 
 
 @dp.message_handler(text="next", state="*")
@@ -89,6 +90,10 @@ async def next_getting(call: CallbackQuery, state: FSMContext):
         answer = re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))
         await call.message.delete_reply_markup()
         await call.message.answer(f'Введи {answer} в см', reply_markup=choice)
+        message_id = call.message.message_id+1
+        await state.update_data(
+            {"message_id": message_id}
+        )
     else:
         await call.message.delete_reply_markup()
         await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
