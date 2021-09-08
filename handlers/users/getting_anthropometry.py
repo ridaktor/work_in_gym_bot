@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.types import CallbackQuery
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher import FSMContext
-from input_check import answer_check
+from input_check import answer_validation
 from keyboards.inline.interrupt_buttons import choice, start_keyboard
 from states.anthropometrics import Anthropometrics
 import re
@@ -14,7 +14,7 @@ from loader import bot, dp
 async def get_anthropometry(message: types.Message, state: FSMContext):
     await message.answer('Введи вес в кг', reply_markup=choice)
     await Anthropometrics.body_weight.set()
-    message_id = message.message_id+1
+    message_id = message.message_id + 1
     await state.update_data(
         {"message_id": message_id}
     )
@@ -24,7 +24,7 @@ async def get_anthropometry(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Anthropometrics.body_weight)
 async def get_body_height(message: types.Message, state: FSMContext):
     answer = message.text
-    filtered_answer = await answer_check(answer, message)
+    filtered_answer = await answer_validation(answer, message)
     state_id = await state.get_data()
     message_id = state_id['message_id']
     if filtered_answer:
@@ -44,7 +44,7 @@ async def get_body_height(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Anthropometrics.body_height)
 async def get_body_weight(message: types.Message, state: FSMContext):
     answer = message.text
-    filtered_answer = await answer_check(answer, message)
+    filtered_answer = await answer_validation(answer, message)
     state_id = await state.get_data()
     message_id = state_id['message_id']
     if filtered_answer:

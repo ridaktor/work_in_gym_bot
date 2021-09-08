@@ -1,7 +1,7 @@
 import re
 
 
-async def answer_check(answer, message):
+async def answer_validation(answer, message):
     """
     The function checks the user's answer for correctness
     """
