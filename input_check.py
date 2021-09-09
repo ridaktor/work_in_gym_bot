@@ -18,7 +18,6 @@ async def answer_validation(answer, message):
 
         filtered_answer = float(filtered_answer.group(0))
         if filtered_answer > 0:
-            answer_validation.invocations = 0
             return round(filtered_answer, 1) if filtered_answer % 1 > 0 else int(filtered_answer)  # for a clean display
         else:
             await message.answer("Введи положительное значение")
