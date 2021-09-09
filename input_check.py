@@ -15,11 +15,10 @@ async def answer_validation(answer, message):
 
         # searching for a real number (including exp. form)
         filtered_answer = re.search(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?", filtered_answer)
-
-        filtered_answer = float(filtered_answer.group(0))
+        filtered_answer = round(float(filtered_answer.group(0)), 1)
         if filtered_answer > 0:
-            return round(filtered_answer, 1) if filtered_answer % 1 > 0 else int(filtered_answer)  # for a clean display
+            return filtered_answer if filtered_answer % 1 > 0 else int(filtered_answer)  # for a clean display
         else:
-            await message.answer("Введи положительное значение")
+            await message.answer("Значние отрицательное или слишком мало, попробуй еще раз")
     except:
         await message.answer("Неверный формат, попробуй еще раз")
