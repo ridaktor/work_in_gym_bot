@@ -27,6 +27,7 @@ async def get_body_height(message: types.Message, state: FSMContext):
     filtered_answer = await answer_validation(answer, message)
     state_id = await state.get_data()
     message_id = state_id['message_id']
+    print(message_id)
     if filtered_answer:
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
@@ -47,6 +48,7 @@ async def get_body_weight(message: types.Message, state: FSMContext):
     filtered_answer = await answer_validation(answer, message)
     state_id = await state.get_data()
     message_id = state_id['message_id']
+    print(message_id)
     if filtered_answer:
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
@@ -90,7 +92,10 @@ async def next_getting(call: CallbackQuery, state: FSMContext):
         answer = re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))
         await call.message.delete_reply_markup()
         await call.message.answer(f'Введи {answer} в см', reply_markup=choice)
-        message_id = call.message.message_id+1
+        state_id = await state.get_data()
+        message_id = state_id['message_id'] + 1
+        # message_id = call.message.message_id
+        print(message_id)
         await state.update_data(
             {"message_id": message_id}
         )

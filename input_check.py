@@ -1,6 +1,8 @@
 import re
+from invocations_counter import counter
 
 
+@counter
 async def answer_validation(answer, message):
     """
     The function checks the user's answer for correctness
@@ -16,6 +18,7 @@ async def answer_validation(answer, message):
 
         filtered_answer = float(filtered_answer.group(0))
         if filtered_answer > 0:
+            answer_validation.invocations = 0
             return round(filtered_answer, 1) if filtered_answer % 1 > 0 else int(filtered_answer)  # for a clean display
         else:
             await message.answer("Введи положительное значение")
