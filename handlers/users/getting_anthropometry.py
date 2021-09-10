@@ -18,6 +18,9 @@ async def get_anthropometry(message: types.Message, state: FSMContext):
     await state.update_data(
         {"message_id": message_id}
     )
+    await state.update_data(
+        {"answer_count": 0}
+    )
 
 
 @dp.message_handler(text="next", state="*")
@@ -25,11 +28,11 @@ async def get_anthropometry(message: types.Message, state: FSMContext):
 async def get_body_height(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = await answer_validation(answer, message)
-    i = answer_validation.invocations
     state_id = await state.get_data()
+    answer_count = state_id['answer_count'] + 1
     message_id = state_id['message_id'] + 2
     if filtered_answer:
-        message_id = state_id['message_id'] - i * 2 + 2
+        message_id = state_id['message_id'] - answer_count * 2 + 2
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
             {"Вес": filtered_answer}
@@ -40,10 +43,15 @@ async def get_body_height(message: types.Message, state: FSMContext):
         await state.update_data(
             {"message_id": message_id}
         )
-        answer_validation.invocations = 0
+        await state.update_data(
+            {"answer_count": 0}
+        )
     else:
         await state.update_data(
             {"message_id": message_id}
+        )
+        await state.update_data(
+            {"answer_count": answer_count}
         )
 
 
@@ -52,11 +60,11 @@ async def get_body_height(message: types.Message, state: FSMContext):
 async def get_body_weight(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = await answer_validation(answer, message)
-    i = answer_validation.invocations
     state_id = await state.get_data()
+    answer_count = state_id['answer_count'] + 1
     message_id = state_id['message_id'] + 2
     if filtered_answer:
-        message_id = state_id['message_id'] - i * 2 + 2
+        message_id = state_id['message_id'] - answer_count * 2 + 2
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
         await state.update_data(
             {"Рост": filtered_answer}
@@ -67,11 +75,16 @@ async def get_body_weight(message: types.Message, state: FSMContext):
         await state.update_data(
             {"message_id": message_id}
         )
-        answer_validation.invocations = 0
+        await state.update_data(
+            {"answer_count": 0}
+        )
         # await state.finish() # finish (reset state and data)
     else:
         await state.update_data(
             {"message_id": message_id}
+        )
+        await state.update_data(
+            {"answer_count": answer_count}
         )
 
 
@@ -81,7 +94,7 @@ async def show_anthropometry(message: types.Message, state: FSMContext):
     data = await state.get_data()
     if data:
         data.pop('message_id')
-
+        data.pop('answer_count')
     if data:
         await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'Вес' else "{}: {} см".format(k, v)
                                        for k, v in data.items()), reply_markup=start_keyboard)
@@ -95,7 +108,9 @@ async def cancel_getting(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     await state.reset_state(with_data=False)
     await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
-    answer_validation.invocations = 0
+    await state.update_data(
+        {"answer_count": 0}
+    )
 
 
 @dp.callback_query_handler(text="next", state="*")
@@ -118,4 +133,6 @@ async def next_getting(call: CallbackQuery, state: FSMContext):
         await call.message.delete_reply_markup()
         await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
         await state.reset_state(with_data=False)
-    answer_validation.invocations = 0
+    await state.update_data(
+        {"answer_count": 0}
+    )

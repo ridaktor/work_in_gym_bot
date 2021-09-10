@@ -1,8 +1,6 @@
 import re
-from invocations_counter import counter
 
 
-@counter
 async def answer_validation(answer, message):
     """
     The function checks the user's answer for correctness
