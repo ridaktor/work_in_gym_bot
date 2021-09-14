@@ -18,7 +18,7 @@ async def on_shutdown(dispatcher):
 
 
 @dp.message_handler(Text(equals="Помощь"))
-@dp.message_handler(commands=['help'])
+@dp.message_handler(commands='help')
 async def send_menu(message: types.Message):
     """Send list of commands"""
     await message.reply(text='''
@@ -27,7 +27,7 @@ async def send_menu(message: types.Message):
 /get_anthropometry_data -- просмотр введенных данных антропометрии''', reply=False)
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(commands='start')
 async def start_command(message: types.Message):
     """Hello user"""
     await message.reply('Привет, этот бот расчетывает затраченную работу в тренажерном зале, '
@@ -38,5 +38,4 @@ async def start_command(message: types.Message):
 if __name__ == '__main__':
     from aiogram import executor
     from handlers import dp
-
     executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown)
