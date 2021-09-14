@@ -1,8 +1,8 @@
 from loader import bot, storage, dp
 from aiogram import types
-from aiogram.dispatcher.filters import Text
 from keyboards.inline.interrupt_buttons import start_keyboard
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
+from aiogram.dispatcher import FSMContext
 
 
 async def on_startup(dispatcher):
@@ -17,14 +17,14 @@ async def on_shutdown(dispatcher):
     await storage.close()
 
 
-@dp.message_handler(Text(equals="Помощь"))
+@dp.message_handler(text="Помощь")
 @dp.message_handler(commands='help')
 async def send_menu(message: types.Message):
-    """Send list of commands"""
+    """Send a list of commands"""
     await message.reply(text='''
 /help -- Увидеть это сообщение
-/anthropometry -- Ввести данные антропометрии
-/get_anthropometry_data -- просмотр введенных данных антропометрии''', reply=False)
+/enter_data -- Ввести данные антропометрии
+/show_data -- просмотр введенных данных антропометрии''', reply=False)
 
 
 @dp.message_handler(commands='start')
@@ -33,6 +33,21 @@ async def start_command(message: types.Message):
     await message.reply('Привет, этот бот расчетывает затраченную работу в тренажерном зале, '
                         'но для начала нужно знать твои антропометрические данные', reply_markup=start_keyboard)
     # await send_menu(message=message)
+
+
+@dp.message_handler(commands=['show_data'])
+@dp.message_handler(text='Просмотр данных')
+async def show_anthropometry(message: types.Message, state: FSMContext):
+    """Sends tha data collected"""
+    data = await state.get_data()
+    if data:
+        data.pop('message_id')
+        data.pop('answer_amount')
+    if data:
+        await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'Вес' else "{}: {} см".format(k, v)
+                                       for k, v in data.items()), reply_markup=start_keyboard)
+    else:
+        await message.answer('Данных нет', reply_markup=start_keyboard)
 
 
 if __name__ == '__main__':
