@@ -6,10 +6,12 @@ from utils.notify_admins import on_startup_notify, on_shutdown_notify
 
 
 async def on_startup(dispatcher):
+    # Notify admins when bot starts
     await on_startup_notify(dispatcher)
 
 
 async def on_shutdown(dispatcher):
+    # Notify admins when bot is stopped
     await on_shutdown_notify(dispatcher)
     await bot.close()
     await storage.close()
