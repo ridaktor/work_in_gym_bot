@@ -1,17 +1,18 @@
 from loader import bot, storage, dp
 from aiogram import types
-from keyboards.inline.interrupt_buttons import start_keyboard
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
 from aiogram.dispatcher import FSMContext
+from keyboards.default.start_buttons import start_keyboard
 
 
 async def on_startup(dispatcher):
-    # Notify admins when bot starts
+    """Notify admins when bot starts"""
     await on_startup_notify(dispatcher)
 
 
 async def on_shutdown(dispatcher):
-    # Notify admins when bot is stopped
+    """Close bot and storage and
+    notify admins when bot is stopped"""
     await on_shutdown_notify(dispatcher)
     await bot.close()
     await storage.close()
@@ -35,8 +36,8 @@ async def start_command(message: types.Message):
     # await send_menu(message=message)
 
 
-@dp.message_handler(commands=['show_data'])
 @dp.message_handler(text='Просмотр данных')
+@dp.message_handler(commands='show_data')
 async def show_anthropometry(message: types.Message, state: FSMContext):
     """Sends tha data collected"""
     data = await state.get_data()
@@ -50,6 +51,7 @@ async def show_anthropometry(message: types.Message, state: FSMContext):
         await message.answer('Данных нет', reply_markup=start_keyboard)
 
 
+# Bot startup
 if __name__ == '__main__':
     from aiogram import executor
     from handlers import dp

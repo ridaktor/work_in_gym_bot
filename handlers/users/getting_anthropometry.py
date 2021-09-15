@@ -2,13 +2,17 @@ from aiogram import types
 from aiogram.types import CallbackQuery
 from aiogram.dispatcher import FSMContext
 from input_check import answer_validation
-from keyboards.inline.interrupt_buttons import choice, start_keyboard
+from keyboards.inline.interrupt_buttons import choice
+from keyboards.default.start_buttons import start_keyboard
 from states.anthropometrics import Anthropometrics
 import re
 from loader import bot, dp
 
 
 # ToDo: попробовать сделать список всех собиаремых данных и один модуль добавления/изменения данных
+short_list = ['вес', 'рост']
+full_list = ['ступня', 'голеностоп', 'голень', 'бедро', 'таз', 'торс', 'шея и голова', 'плечо', 'предплечье', 'кисть']
+
 
 @dp.message_handler(text='Ввод данных', state=None)
 @dp.message_handler(commands='enter_data', state=None)
