@@ -21,3 +21,24 @@ def answer_validation(answer):
             return "Значние отрицательное или слишком мало, попробуй еще раз"
     except:
         return "Неверный формат, попробуй еще раз"
+
+
+def state_translator(name_of_state):
+    """Translates the name of state into Russian"""
+    result = re.findall(r'\w+$', name_of_state)
+    sub_dict = {
+        'waiting_for_body_weight': 'вес',
+        'waiting_for_body_height': 'рост',
+        'waiting_for_foot': 'ступня',
+        'waiting_for_ankle_to_ground': 'голеностоп',
+        'waiting_for_tibia': 'голень',
+        'waiting_for_femur': 'бедро',
+        'waiting_for_pelvis': 'таз',
+        'waiting_for_torso': 'торс',
+        'waiting_for_head_and_neck': 'шея и голова',
+        'waiting_for_humerus': 'плечо',
+        'waiting_for_forearm': 'предплечье',
+        'waiting_for_hand': 'кисть'
+    }
+    regex = '|'.join(sub_dict)
+    return re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))

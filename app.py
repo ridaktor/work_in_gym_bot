@@ -41,9 +41,9 @@ async def show_anthropometry(message: types.Message, state: FSMContext):
     data = await state.get_data()
     if data:
         data.pop('message_id')
-        data.pop('answer_amount')
+        data.pop('amount_of_answer_attempts')
     if data:
-        await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'Вес' else "{}: {} см".format(k, v)
+        await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'вес' else "{}: {} см".format(k, v)
                                        for k, v in data.items()), reply_markup=data_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
