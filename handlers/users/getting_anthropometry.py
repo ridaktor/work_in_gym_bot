@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery
 from aiogram.dispatcher import FSMContext
 from input_check import answer_validation
 from keyboards.inline.interrupt_buttons import choice
-from keyboards.default.start_buttons import start_keyboard
-from states.anthropometrics import Anthropometrics
+from keyboards.default.data_buttons import data_keyboard
+from states.anthropometrics import GetAnthropometryData
 import re
 from loader import bot, dp
 
@@ -18,7 +18,7 @@ full_list = ['ступня', 'голеностоп', 'голень', 'бедро
 @dp.message_handler(commands='enter_data', state=None)
 async def start_getting_anthropometry(message: types.Message, state: FSMContext):
     await message.answer('Введи вес в кг', reply_markup=choice)
-    await Anthropometrics.body_weight.set()
+    await GetAnthropometryData.waiting_for_body_weight.set()
     message_id = message.message_id + 1
     await state.update_data({
         "message_id": message_id,
@@ -27,7 +27,7 @@ async def start_getting_anthropometry(message: types.Message, state: FSMContext)
 
 
 @dp.message_handler(text="next", state="*")
-@dp.message_handler(state=Anthropometrics.body_weight)
+@dp.message_handler(state=GetAnthropometryData.waiting_for_body_weight)
 async def get_body_height(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = answer_validation(answer)
@@ -43,7 +43,7 @@ async def get_body_height(message: types.Message, state: FSMContext):
             "Вес": filtered_answer
         })
         await message.answer('Введи рост в см', reply_markup=choice)
-        await Anthropometrics.next()
+        await GetAnthropometryData.next()
         message_id = message.message_id + 1
         await state.update_data({
             "message_id": message_id,
@@ -58,7 +58,7 @@ async def get_body_height(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(text="next", state="*")
-@dp.message_handler(state=Anthropometrics.body_height)
+@dp.message_handler(state=GetAnthropometryData.waiting_for_body_height)
 async def get_body_weight(message: types.Message, state: FSMContext):
     answer = message.text
     filtered_answer = answer_validation(answer)
@@ -71,7 +71,7 @@ async def get_body_weight(message: types.Message, state: FSMContext):
         await state.update_data({
             "Рост": filtered_answer
         })
-        await message.answer('Сбор данных завершен', reply_markup=start_keyboard)
+        await message.answer('Сбор данных завершен', reply_markup=data_keyboard)
         await state.reset_state(with_data=False)  # finish (reset only state)
         message_id = message.message_id + 1
         await state.update_data({
@@ -92,7 +92,7 @@ async def cancel_getting(call: CallbackQuery, state: FSMContext):
     await call.answer('Вы отменили сбор', show_alert=True)
     await call.message.delete_reply_markup()
     await state.reset_state(with_data=False)
-    await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
+    await call.message.answer('Сбор данных завершен', reply_markup=data_keyboard)
     await state.update_data({
         "answer_amount": 0
     })
@@ -100,11 +100,14 @@ async def cancel_getting(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query_handler(text="next", state="*")
 async def next_getting(call: CallbackQuery, state: FSMContext):
-    await Anthropometrics.next()
+    await GetAnthropometryData.next()
     current_state = await state.get_state()
     if current_state is not None:
         result = re.findall(r'\w+$', current_state)
-        sub_dict = {'body_weight': 'вес', 'body_height': 'рост'}
+        sub_dict = {
+            'waiting_for_body_weight': 'вес',
+            'waiting_for_body_height': 'рост'
+        }
         regex = '|'.join(sub_dict)
         answer = re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))
         await call.message.delete_reply_markup()
@@ -116,7 +119,7 @@ async def next_getting(call: CallbackQuery, state: FSMContext):
         })
     else:
         await call.message.delete_reply_markup()
-        await call.message.answer('Сбор данных завершен', reply_markup=start_keyboard)
+        await call.message.answer('Сбор данных завершен', reply_markup=data_keyboard)
         await state.reset_state(with_data=False)
     await state.update_data({
         "answer_amount": 0
