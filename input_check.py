@@ -1,18 +1,18 @@
 import re
 
 
-def answer_validation(answer):
+def answer_validate(answer):
     """Validates the user response for the presence of numbers"""
+    filtered_answer = answer.replace(',', '.')
+
+    # Replacing Cyrillic 'е' with 'Е' in the case of an exponential form
+    filtered_answer = filtered_answer.replace('\u0435', 'e').replace('\u0415', 'E')
+
     try:
-        filtered_answer = answer.replace(',', '.')
-
-        # Replacing Cyrillic ('е' and 'Е')
-        filtered_answer = filtered_answer.replace('\u0435', 'e').replace('\u0415', 'E')
-
-        # Searching for a real number (including exp. form)
+        # Searching for a real number (including exponential form)
         filtered_answer = re.search(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?", filtered_answer)
 
-        # Round up for a nice display
+        # Round up for a clean display
         filtered_answer = round(float(filtered_answer.group(0)), 1)
 
         if filtered_answer > 0:
@@ -23,22 +23,22 @@ def answer_validation(answer):
         return "Неверный формат, попробуй еще раз"
 
 
-def state_translator(name_of_state):
+def state_translate(name_of_state):
     """Translates the name of state into Russian"""
     result = re.findall(r'\w+$', name_of_state)
     sub_dict = {
-        'waiting_for_body_weight': 'вес',
-        'waiting_for_body_height': 'рост',
-        'waiting_for_foot': 'ступня',
-        'waiting_for_ankle_to_ground': 'голеностоп',
-        'waiting_for_tibia': 'голень',
-        'waiting_for_femur': 'бедро',
-        'waiting_for_pelvis': 'таз',
-        'waiting_for_torso': 'торс',
-        'waiting_for_head_and_neck': 'шея и голова',
-        'waiting_for_humerus': 'плечо',
-        'waiting_for_forearm': 'предплечье',
-        'waiting_for_hand': 'кисть'
+        'body_weight': 'вес',
+        'body_height': 'рост',
+        'foot': 'ступня',
+        'ankle_to_ground': 'голеностоп',
+        'tibia': 'голень',
+        'femur': 'бедро',
+        'pelvis': 'таз',
+        'torso': 'торс',
+        'head_and_neck': 'шея и голова',
+        'humerus': 'плечо',
+        'forearm': 'предплечье',
+        'hand': 'кисть'
     }
     regex = '|'.join(sub_dict)
     return re.sub(regex, lambda m: sub_dict[m.group()], str(result[0]))
