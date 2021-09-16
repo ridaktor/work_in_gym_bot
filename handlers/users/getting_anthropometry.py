@@ -21,15 +21,14 @@ async def _get_anthropometry(message, state):
     bot_question_message_id = state_data['bot_question_message_id'] + 2
 
     if type(filtered_answer) is not str:
-        current_state = await state.get_state()
-        translated_state = state_translate(current_state)
-
-        # Revert to the message id with the inline keyboard
-        bot_question_message_id = state_data['bot_question_message_id'] - amount_of_answer_attempts * 2 + 2
-
         # Removing the inline keyboard because a valid answer was received
+        bot_question_message_id = state_data['bot_question_message_id'] \
+                                  - amount_of_answer_attempts * 2 + 2  # Revert to the message with the inline keyboard
         await bot.edit_message_reply_markup(chat_id=message.from_user.id,
                                             message_id=bot_question_message_id, reply_markup=None)
+
+        current_state = await state.get_state()
+        translated_state = state_translate(current_state)
         await state.update_data({
             translated_state: filtered_answer
         })
