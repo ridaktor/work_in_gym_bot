@@ -1,7 +1,7 @@
 import re
 
 
-def _number_search(answer: str):
+def _number_search(answer: str) -> [float, str]:
     """Searches for a number in a string"""
     filtered_answer = answer.replace(',', '.')
     filtered_answer = filtered_answer.replace('\u0435', 'e').replace('\u0415', 'E')  # Replacing Cyrillic 'е' and 'Е'
@@ -12,16 +12,16 @@ def _number_search(answer: str):
         return "Неверный формат, попробуй еще раз"
 
 
-def _answer_validate(answer: str):
+def _answer_validate(answer: str) -> [float, int, str]:
     """Validates the user answer in terms of a positive number"""
     if answer.isdigit() and int(answer) > 0:
         return int(answer)
     else:
-        filtered_answer = _number_search(answer)
-        if isinstance(filtered_answer, str):
-            return filtered_answer
-        elif filtered_answer > 0:
-            return filtered_answer if filtered_answer % 1 > 0 else int(filtered_answer)  # for a clean display
+        valid_answer = _number_search(answer)
+        if isinstance(valid_answer, str):
+            return valid_answer
+        elif valid_answer > 0:
+            return valid_answer if valid_answer % 1 > 0 else int(valid_answer)  # for a clean display
         else:
             return "Значние отрицательное или слишком мало, попробуй еще раз"
 
