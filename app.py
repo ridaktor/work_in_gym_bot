@@ -40,7 +40,7 @@ async def show_anthropometry(message: Message, state: FSMContext):
     """Sends tha state_data collected"""
     state_data = await state.get_data()
     if state_data:
-        state_data.pop('bot_message_id')
+        state_data.pop('question_message_id')
     if state_data:
         await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'вес' else "{}: {} см".format(k, v)
                                        for k, v in state_data.items()), reply_markup=data_keyboard)
