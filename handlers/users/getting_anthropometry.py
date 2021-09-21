@@ -19,7 +19,7 @@ async def start_getting_anthropometry(message: Message, state: FSMContext):
 
 @dp.callback_query_handler(text="next", state="*")
 async def _state_switch_forward(message: Message, state: FSMContext):
-    """Switch to another state ans send the following question"""
+    """Switch to another state and send the following question"""
     await AnthropometryStates.next()
     async with state.proxy() as data:
         question_message_id = data['question_message_id']
