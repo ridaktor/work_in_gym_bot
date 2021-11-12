@@ -1,4 +1,5 @@
 import re
+from loader import bot
 
 
 def _number_search(answer: str) -> [float, str]:
@@ -54,3 +55,18 @@ def _state_translate(state_name: str, question=False) -> str:
             return 'Введи длину предплечья' if question else 'Длина предплечья'
         case 'hand':
             return 'Введи длину кисти' if question else 'Длина кисти'
+
+
+async def _get_question_message_id(answer_message, message, state, choice):
+    """Gets the message id with inline buttons"""
+    question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
+    async with state.proxy() as data:
+        data['question_message_id'] = question.message_id
+
+
+async def _delete_reply_markup(message, state):
+    """Deletes inline buttons"""
+    async with state.proxy() as data:
+        question_message_id = data['question_message_id']
+    await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=question_message_id,
+                                        reply_markup=None)

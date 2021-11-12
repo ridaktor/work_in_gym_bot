@@ -1,7 +1,7 @@
-from asyncio import sleep
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
-from input_check import _answer_validate, _state_translate
+from handlers.users.input_handling import _answer_validate, _state_translate, _get_question_message_id, \
+    _delete_reply_markup
 from keyboards.inline.interrupt_buttons import choice
 from keyboards.default.data_buttons import data_keyboard
 from states.anthropometry_states import AnthropometryStates
@@ -15,29 +15,25 @@ async def _state_switch_forward(message: Message, state: FSMContext):
     """TODO"""
     current_state = await state.get_state()
     if current_state:
-        async with state.proxy() as data:
-            question_message_id = data['question_message_id']
-        await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=question_message_id, reply_markup=None)
-
+        # Continued collection of anthropometry
+        await _delete_reply_markup(message, state)
         await AnthropometryStates.next()
         current_state = await state.get_state()
 
         if current_state == 'AnthropometryStates:the_end':
-            await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен',
-                                   reply_markup=data_keyboard)
+            # End of anthropometry collection
+            await message.answer(text='Сбор данных завершен', reply_markup=data_keyboard)
             await state.reset_state(with_data=False)
         else:
             answer_message = _state_translate(current_state, question=True)
-            question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
-            async with state.proxy() as data:
-                data['question_message_id'] = question.message_id
+            await _get_question_message_id(answer_message, message, state, choice)
+
     else:
+        # Beginning of anthropometry collection
         await AnthropometryStates.first()
         current_state = await state.get_state()
         answer_message = _state_translate(current_state, question=True)
-        question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
-        async with state.proxy() as data:
-            data['question_message_id'] = question.message_id
+        await _get_question_message_id(answer_message, message, state, choice)
 
 
 for each_state in AnthropometryStates.all_states:
@@ -59,6 +55,8 @@ for each_state in AnthropometryStates.all_states:
 async def cancel_getting(call: CallbackQuery, state: FSMContext):
     """Abort data collection"""
     await call.message.delete_reply_markup()
+    async with state.proxy() as data:
+        print((data.as_dict()))
     await state.reset_state(with_data=False)
     await call.message.answer('Сбор данных прерван', reply_markup=data_keyboard)
     await call.answer('Вы отменили сбор', show_alert=True)
