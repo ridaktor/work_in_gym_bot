@@ -1,8 +1,8 @@
+from data_base.sqlite_db import db_start, db_read
 from loader import storage, dp
 from aiogram.types import Message
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
 from utils.set_bot_commands import set_default_commands
-from aiogram.dispatcher import FSMContext
 from keyboards.default.data_buttons import data_keyboard
 
 
@@ -10,6 +10,7 @@ async def on_startup(dispatcher):
     """Set default commands and notify admins when bot starts"""
     await set_default_commands(dispatcher)
     await on_startup_notify(dispatcher)
+    await db_start()
 
 
 async def on_shutdown(dispatcher):
@@ -36,14 +37,13 @@ async def start_command(message: Message):
 
 @dp.message_handler(text='Просмотр данных')
 @dp.message_handler(commands='show_data')
-async def show_anthropometry(message: Message, state: FSMContext):
+async def show_anthropometry(message: Message):
     """Sends tha state_data collected"""
-    state_data = await state.get_data()
-    if state_data:
-        state_data.pop('question_message_id')
-    if state_data:
-        await message.answer('\n'.join("{}: {} кг".format(k, v) if k == 'Вес' else "{}: {} см".format(k, v)
-                                       for k, v in state_data.items()), reply_markup=data_keyboard)
+    bd_data = dict(await db_read())
+    if bd_data:
+        await message.answer('\n'.join("{}: {} кг".format(k, v if v % 1 > 0 else int(v))
+                                       if k == 'Вес' else "{}: {} см".format(k, v if v % 1 > 0 else int(v))
+                                       for k, v in bd_data.items()), reply_markup=data_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
 

@@ -2,7 +2,7 @@ import re
 from loader import bot
 
 
-def _number_search(answer: str) -> [float, str]:
+async def _number_search(answer: str) -> [float, str]:
     """Searches for a number in a string"""
     filtered_answer = answer.replace(',', '.')
     filtered_answer = filtered_answer.replace('\u0435', 'e').replace('\u0415', 'E')  # Replacing Cyrillic 'е' and 'Е'
@@ -13,21 +13,21 @@ def _number_search(answer: str) -> [float, str]:
         return "Неверный формат, попробуй еще раз"
 
 
-def _answer_validate(answer: str) -> [float, int, str]:
+async def _answer_validate(answer: str) -> [float, str]:
     """Validates the user answer in terms of a positive number"""
-    if answer.isdigit() and int(answer) > 0:
-        return int(answer)
+    if answer.isdigit() and float(answer) > 0:
+        return float(answer)
     else:
-        valid_answer = _number_search(answer)
+        valid_answer = await _number_search(answer)
         if isinstance(valid_answer, str):
             return valid_answer
-        elif valid_answer > 0:
-            return valid_answer if valid_answer % 1 > 0 else int(valid_answer)  # for a clean display
+        elif float(valid_answer) > 0:
+            return float(valid_answer)
         else:
             return "Значние отрицательное или слишком мало, попробуй еще раз"
 
 
-def _state_translate(state_name: str, question=False) -> str:
+async def _state_translate(state_name: str, question=False) -> str:
     """Returns a polling request or translation of the state name in Russian"""
     state_name_without_prefix = (re.findall(r'\w+$', state_name))[0]
     match state_name_without_prefix:
