@@ -6,6 +6,7 @@ table_name = 'anthropometry'
 
 
 async def db_start():
+    """Creates a table with three columns"""
     async with aiosqlite.connect('data_base/main.db') as db:
         await db.execute(
             """CREATE TABLE IF NOT EXISTS {}(row_id INTEGER, body_part_name TEXT PRIMARY KEY, value REAL)""".format(table_name)
@@ -13,7 +14,8 @@ async def db_start():
         await db.commit()
 
 
-async def db_zeros_fill():
+async def db_fill():
+    """Fills the table with body part names in order"""
     async with aiosqlite.connect('data_base/main.db') as db:
         names = AnthropometryStates.all_states_names[:-1]
         row_id = [i for i in range(1, len(names)+1)]
@@ -27,6 +29,7 @@ async def db_zeros_fill():
 
 
 async def db_add(state):
+    """Updates the value im the table"""
     async with aiosqlite.connect('data_base/main.db') as db:
         async with state.proxy() as data:
             data.pop('question_message_id')
@@ -38,6 +41,7 @@ async def db_add(state):
 
 
 async def db_read():
+    """Reads the table and returns non-zero rows"""
     async with aiosqlite.connect('data_base/main.db') as db:
         cursor = await db.execute("""SELECT body_part_name, value FROM {} ORDER BY row_id""".format(table_name))
         all_rows = await cursor.fetchall()

@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
-from data_base.sqlite_db import db_add, db_zeros_fill
+from data_base.sqlite_db import db_add, db_fill
 from input_handling import _answer_validate, _state_translate, _get_question_message_id, \
     _delete_reply_markup
 from keyboards.inline.interrupt_buttons import choice
@@ -32,7 +32,7 @@ async def _state_switch_forward(message: Message, state: FSMContext):
 
     else:
         # Beginning of anthropometry collection
-        await db_zeros_fill()
+        await db_fill()
         await AnthropometryStates.first()
         current_state = await state.get_state()
         answer_message = await _state_translate(current_state, question=True)
