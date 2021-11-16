@@ -1,12 +1,12 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
-from data_base.sqlite_db import db_add
-from handlers.users.input_handling import _answer_validate, _state_translate, _get_question_message_id, \
+from data_base.sqlite_db import db_add, db_zeros_fill
+from input_handling import _answer_validate, _state_translate, _get_question_message_id, \
     _delete_reply_markup
 from keyboards.inline.interrupt_buttons import choice
 from keyboards.default.data_buttons import data_keyboard
 from states.anthropometry_states import AnthropometryStates
-from loader import dp
+from loader import dp, bot
 
 
 @dp.message_handler(text='Ввод данных', state=None)
@@ -23,7 +23,7 @@ async def _state_switch_forward(message: Message, state: FSMContext):
 
         if current_state == 'AnthropometryStates:the_end':
             # End of anthropometry collection
-            await message.answer(text='Сбор данных завершен', reply_markup=data_keyboard)
+            await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен', reply_markup=data_keyboard)
             await db_add(state)
             await state.reset_state()
         else:
@@ -32,6 +32,7 @@ async def _state_switch_forward(message: Message, state: FSMContext):
 
     else:
         # Beginning of anthropometry collection
+        await db_zeros_fill()
         await AnthropometryStates.first()
         current_state = await state.get_state()
         answer_message = await _state_translate(current_state, question=True)

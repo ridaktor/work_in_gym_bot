@@ -41,9 +41,10 @@ async def show_anthropometry(message: Message):
     """Sends tha state_data collected"""
     bd_data = dict(await db_read())
     if bd_data:
-        await message.answer('\n'.join("{}: {} кг".format(k, v if v % 1 > 0 else int(v))
-                                       if k == 'Вес' else "{}: {} см".format(k, v if v % 1 > 0 else int(v))
-                                       for k, v in bd_data.items()), reply_markup=data_keyboard)
+        await message.answer('\n'.join(
+            "{}: {} кг".format(k, v if v % 1 > 0 else int(v)) if k == 'Вес' else
+            "{}: {} см".format(k, v if v % 1 > 0 else int(v)) for k, v in bd_data.items()
+        ), reply_markup=data_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
 
