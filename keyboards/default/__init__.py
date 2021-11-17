@@ -1,1 +1,1 @@
-from . import data_buttons
+from . import data_buttons, exercise_buttons

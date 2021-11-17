@@ -2,7 +2,7 @@ import re
 from loader import bot
 
 
-async def _number_search(answer: str) -> [float, str]:
+async def number_search(answer: str) -> [float, str]:
     """Searches for a number in a string"""
     filtered_answer = answer.replace(',', '.')
     filtered_answer = filtered_answer.replace('\u0435', 'e').replace('\u0415', 'E')  # Replacing Cyrillic 'е' and 'Е'
@@ -13,12 +13,12 @@ async def _number_search(answer: str) -> [float, str]:
         return "Неверный формат, попробуй еще раз"
 
 
-async def _answer_validate(answer: str) -> [float, str]:
+async def answer_validate(answer: str) -> [float, str]:
     """Validates the user answer in terms of a positive number"""
     if answer.isdigit() and float(answer) > 0:
         return float(answer)
     else:
-        valid_answer = await _number_search(answer)
+        valid_answer = await number_search(answer)
         if isinstance(valid_answer, str):
             return valid_answer
         elif float(valid_answer) > 0:
@@ -27,7 +27,7 @@ async def _answer_validate(answer: str) -> [float, str]:
             return "Значние отрицательное или слишком мало, попробуй еще раз"
 
 
-async def _state_translate(state_name: str, question=False) -> str:
+async def state_translate(state_name: str, question=False) -> str:
     """Returns a polling request or translation of the state name in Russian"""
     state_name_without_prefix = (re.findall(r'\w+$', state_name))[0]
     match state_name_without_prefix:
@@ -57,14 +57,14 @@ async def _state_translate(state_name: str, question=False) -> str:
             return 'Введи длину кисти' if question else 'Длина кисти'
 
 
-async def _get_question_message_id(answer_message, message, state, choice):
-    """Gets the message id with inline buttons"""
+async def put_question_message_id(answer_message, message, state, choice):
+    """Puts the question message id with inline buttons in state data"""
     question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
     async with state.proxy() as data:
         data['question_message_id'] = question.message_id
 
 
-async def _delete_reply_markup(message, state):
+async def delete_reply_markup(message, state):
     """Deletes inline buttons"""
     async with state.proxy() as data:
         question_message_id = data['question_message_id']

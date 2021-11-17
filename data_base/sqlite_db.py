@@ -1,5 +1,5 @@
 import aiosqlite
-from input_handling import _state_translate
+from input_handling import state_translate
 from states.anthropometry_states import AnthropometryStates
 
 table_name = 'anthropometry'
@@ -19,7 +19,7 @@ async def db_fill():
     async with aiosqlite.connect('data_base/main.db') as db:
         names = AnthropometryStates.all_states_names[:-1]
         row_id = [i for i in range(1, len(names)+1)]
-        translated_body_part_name = [await _state_translate(name) for name in names]
+        translated_body_part_name = [await state_translate(name) for name in names]
         zeros = [0] * len(names)
         values = list(zip(row_id, translated_body_part_name, zeros))
         await db.executemany(

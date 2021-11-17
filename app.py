@@ -24,7 +24,8 @@ async def send_menu(message: Message):
     """Send a list of commands"""
     await message.reply(text='''
 /enter_data -- Ввести данные антропометрии
-/show_data -- Просмотр введенных данных антропометрии''', reply=False)
+/show_data -- Просмотр введенных данных антропометрии
+/wo_start -- Начать тренировку''', reply=False)
 
 
 @dp.message_handler(commands='start')
