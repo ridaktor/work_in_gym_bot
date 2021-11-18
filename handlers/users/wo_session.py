@@ -7,7 +7,8 @@ from keyboards.default.exercise_buttons import exercise_keyboard
 from loader import dp
 from states.wo_states import WorkoutStates
 
-#TODO
+
+# TODO
 @dp.message_handler(text='Начать тренировку', state=None)
 @dp.message_handler(commands='wo_start', state=None)
 async def start_wo(message: Message):
@@ -29,8 +30,27 @@ async def squats(message: Message, state: FSMContext):
 
 
 @dp.message_handler(text="Румынская тяга", state="WorkoutStates:workout")
-async def romanian_deadlift(message: Message):
-    await message.answer('Потрачено ? дж на Румынской тяге', reply_markup=exercise_keyboard)
+async def romanian_deadlift(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        if data:
+            await message.answer('Работа на Румынской тяге равна {}'.format(data.items()), reply_markup=exercise_keyboard)
+            await state.reset_state()
+            await WorkoutStates.workout.set()
+        else:
+            await message.answer('Введи вес штанги', reply_markup=None)
+            await WorkoutStates.barbell_weight.set()
+
+
+@dp.message_handler(text="Подтягивания", state="WorkoutStates:workout")
+async def pullups(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        if data:
+            await message.answer('Работа на Подтягиваниях равна {}'.format(data.items()), reply_markup=exercise_keyboard)
+            await state.reset_state()
+            await WorkoutStates.workout.set()
+        else:
+            await message.answer('Введи вес штанги', reply_markup=None)
+            await WorkoutStates.barbell_weight.set()
 
 
 @dp.message_handler(text="Закончить тренировку", state="WorkoutStates:workout")
@@ -52,7 +72,7 @@ async def get_barbell_weight(message: Message, state: FSMContext):
 
 
 @dp.message_handler(state=WorkoutStates.number_of_reps)
-async def get_barbell_weight(message: Message, state: FSMContext):
+async def get_number_of_reps(message: Message, state: FSMContext):
     valid_answer = await answer_validate(message.text)
     if isinstance(valid_answer, str):
         await message.answer(valid_answer)
@@ -64,7 +84,7 @@ async def get_barbell_weight(message: Message, state: FSMContext):
 
 
 @dp.message_handler(state=WorkoutStates.number_of_sets)
-async def get_barbell_weight(message: Message, state: FSMContext):
+async def get_number_of_sets(message: Message, state: FSMContext):
     valid_answer = await answer_validate(message.text)
     if isinstance(valid_answer, str):
         await message.answer(valid_answer)
@@ -72,4 +92,3 @@ async def get_barbell_weight(message: Message, state: FSMContext):
         async with state.proxy() as data:
             data['number_of_sets'] = valid_answer
         await squats(message, state)
-
