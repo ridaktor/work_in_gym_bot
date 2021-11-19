@@ -1,3 +1,5 @@
+
+
 class Exercise:
     g = 9.81
 
@@ -12,4 +14,5 @@ class Exercise:
             return self.sets * self.extra_weight * self.g * self.reps * 0.01
         else:
             print('Такого упражнения нет')
+
 

@@ -26,17 +26,22 @@ async def _state_switch_forward(message: Message, state: FSMContext):
             await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен', reply_markup=data_keyboard)
             await db_add(state)
             await state.reset_state()
+
         else:
             answer_message = await state_translate(current_state, question=True)
-            await put_question_message_id(answer_message, message, state, choice)
+            question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
+            await put_question_message_id(question, state)
 
     else:
         # Beginning of anthropometry collection
         await db_fill()
         await AnthropometryStates.first()
-        current_state = await state.get_state()
-        answer_message = await state_translate(current_state, question=True)
-        await put_question_message_id(answer_message, message, state, choice)
+        await _state_switch_forward(message, state)
+        # current_state = await state.get_state()
+        #
+        # answer_message = await state_translate(current_state, question=True)
+        # question = await bot.send_message(chat_id=message.from_user.id, text=answer_message, reply_markup=choice)
+        # await put_question_message_id(question, state)
 
 
 for each_state in AnthropometryStates.all_states:
