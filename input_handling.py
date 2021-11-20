@@ -1,4 +1,5 @@
 import re
+from aiogram.utils.exceptions import MessageToEditNotFound, MessageNotModified
 from loader import bot
 
 
@@ -21,10 +22,10 @@ async def answer_validate(answer: str) -> [float, str]:
         valid_answer = await number_search(answer)
         if isinstance(valid_answer, str):
             return valid_answer
-        elif float(valid_answer) > 0:
+        elif float(valid_answer) >= 0:
             return float(valid_answer)
         else:
-            return "Значние отрицательное или слишком мало, попробуй еще раз"
+            return "Введи положительное число"
 
 
 async def state_translate(state_name: str, question=False) -> str:
@@ -65,10 +66,12 @@ async def put_question_message_id(question, state):
 
 async def delete_reply_markup(message, state):
     """Deletes inline buttons"""
+    async with state.proxy() as data:
+        question_message_id = data['question_message_id'] if 'question_message_id' in data else None
     try:
-        async with state.proxy() as data:
-            question_message_id = data['question_message_id']
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=question_message_id,
                                             reply_markup=None)
-    except: #TODO
+    except MessageToEditNotFound:
+        pass
+    except MessageNotModified:
         pass
