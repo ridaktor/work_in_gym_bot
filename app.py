@@ -1,4 +1,5 @@
 from data_base.sqlite_db import db_start, db_read
+from input_handling import state_translate
 from loader import storage, dp
 from aiogram.types import Message
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
@@ -40,12 +41,15 @@ async def start_command(message: Message):
 @dp.message_handler(commands='show_data')
 async def show_anthropometry(message: Message):
     """Sends tha state_data collected"""
-    bd_data = dict(await db_read())
-    if bd_data:
-        await message.answer('\n'.join(
+    db_data = await db_read()
+    if db_data:
+        body_part_name, body_part_length = zip(*db_data)
+        db_data_rus = dict(zip([await state_translate(name) for name in body_part_name], body_part_length))
+        answer = '\n'.join(
             "{}: {} кг".format(k, v if v % 1 > 0 else int(v)) if k == 'Вес' else
-            "{}: {} см".format(k, v if v % 1 > 0 else int(v)) for k, v in bd_data.items()
-        ), reply_markup=data_keyboard)
+            "{}: {} см".format(k, v if v % 1 > 0 else int(v)) for k, v in db_data_rus.items())
+
+        await message.answer(answer, reply_markup=data_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
 

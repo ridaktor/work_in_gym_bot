@@ -2,6 +2,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
 class AnthropometryStates(StatesGroup):
+    start = State()
     body_weight = State()
     body_height = State()
     foot = State()

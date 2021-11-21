@@ -9,7 +9,10 @@ async def db_start():
     """Creates a table with three columns"""
     async with aiosqlite.connect('data_base/main.db') as db:
         await db.execute(
-            """CREATE TABLE IF NOT EXISTS {}(row_id INTEGER, body_part_name TEXT PRIMARY KEY, value REAL)""".format(table_name)
+            """CREATE TABLE IF NOT EXISTS {}(
+            body_part_name TEXT PRIMARY KEY, 
+            length REAL DEFAULT 0, 
+            weight REAL)""".format(table_name)
         )
         await db.commit()
 
@@ -17,13 +20,11 @@ async def db_start():
 async def db_fill():
     """Fills the table with body part names in order"""
     async with aiosqlite.connect('data_base/main.db') as db:
-        names = AnthropometryStates.all_states_names[:-1]
-        row_id = [i for i in range(1, len(names)+1)]
-        translated_body_part_name = [await state_translate(name) for name in names]
-        zeros = [0] * len(names)
-        values = list(zip(row_id, translated_body_part_name, zeros))
+        # state_name_without_prefix = state_name.replace('AnthropometryStates:', '')
+        translated_names = [name.replace('AnthropometryStates:', '') for name in AnthropometryStates.all_states_names[1:-1]]
         await db.executemany(
-            """INSERT OR IGNORE INTO {} (row_id, body_part_name, value) VALUES (?, ?, ?)""".format(table_name), values
+            """INSERT OR IGNORE INTO {} (
+            body_part_name) VALUES (?)""".format(table_name), list(zip(translated_names))
         )
         await db.commit()
 
@@ -35,7 +36,7 @@ async def db_add(state):
             data.pop('question_message_id')
             reversed_tuple = [t[::-1] for t in tuple(data.items())]
             await db.executemany(
-                """UPDATE {} SET value == ? WHERE body_part_name == ?""".format(table_name), reversed_tuple
+                """UPDATE {} SET length == ? WHERE body_part_name == ?""".format(table_name), reversed_tuple
             )
             await db.commit()
 
@@ -43,7 +44,7 @@ async def db_add(state):
 async def db_read():
     """Reads the table and returns non-zero rows"""
     async with aiosqlite.connect('data_base/main.db') as db:
-        cursor = await db.execute("""SELECT body_part_name, value FROM {} ORDER BY row_id""".format(table_name))
+        cursor = await db.execute("""SELECT body_part_name, length FROM {}""".format(table_name))
         all_rows = await cursor.fetchall()
         not_empty_rows = [i for i in all_rows if i[1] != 0]
         return not_empty_rows

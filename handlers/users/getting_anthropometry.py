@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
 from data_base.sqlite_db import db_add, db_fill
+from handlers.users.anthropometry_calc import anthropometry_calc
 from input_handling import answer_validate, state_translate, put_question_message_id, \
     delete_reply_markup
 from keyboards.inline.interrupt_buttons import choice
@@ -20,24 +21,35 @@ async def _state_switch_forward(message: Message, state: FSMContext):
         await delete_reply_markup(message, state)
         await AnthropometryStates.next()
         current_state = await state.get_state()
-
         if current_state == 'AnthropometryStates:the_end':
             # End of anthropometry collection
             await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен',
                                    reply_markup=data_keyboard)
             await db_add(state)
             await state.reset_state()
-
         else:
             question_text = await state_translate(current_state, question=True)
             question_message = await bot.send_message(chat_id=message.from_user.id, text=question_text,
                                                       reply_markup=choice)
             await put_question_message_id(question_message, state)
-
     else:
         # Beginning of anthropometry collection
         await db_fill()
         await AnthropometryStates.first()
+        await _state_switch_forward(message, state)
+
+
+@dp.message_handler(state=AnthropometryStates.all_states)
+async def _get_anthropometry(message: Message, state: FSMContext):
+    """Get anthropometry data in a list of all states"""
+    valid_answer = await answer_validate(message.text)
+    if isinstance(valid_answer, str):
+        await message.answer(valid_answer)
+    else:
+        current_state = await state.get_state()
+        state_name_without_prefix = current_state.replace('AnthropometryStates:', '')
+        async with state.proxy() as data:
+            data[state_name_without_prefix] = valid_answer
         await _state_switch_forward(message, state)
 
 
@@ -49,17 +61,3 @@ async def cancel_getting(call: CallbackQuery, state: FSMContext):
     await state.reset_state()
     await call.message.answer('Сбор данных прерван', reply_markup=data_keyboard)
     await call.answer('Вы отменили сбор', show_alert=True)
-
-
-@dp.message_handler(state=AnthropometryStates.all_states)
-async def _get_anthropometry(message: Message, state: FSMContext):
-    """Get anthropometry data in a list of all states"""
-    valid_answer = await answer_validate(message.text)
-    if isinstance(valid_answer, str):
-        await message.answer(valid_answer)
-    else:
-        current_state = await state.get_state()
-        translated_state = await state_translate(current_state)
-        async with state.proxy() as data:
-            data[translated_state] = valid_answer
-        await _state_switch_forward(message, state)

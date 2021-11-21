@@ -56,6 +56,10 @@ async def state_translate(state_name: str, question=False) -> str:
             return 'Введи длину предплечья' if question else 'Длина предплечья'
         case 'hand':
             return 'Введи длину кисти' if question else 'Длина кисти'
+        case 'number_of_reps':
+            return 'Введи количество повторений' if question else 'Количество по вторений'
+        case 'number_of_sets':
+            return 'Введи количество подходов' if question else 'Количество подходов'
 
 
 async def put_question_message_id(question, state):
