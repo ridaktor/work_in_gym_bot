@@ -4,8 +4,8 @@ from data_base.sqlite_db import db_read
 
 #TODO
 async def anthropometry_calc():
-    db_data = dict(await db_read())
-    print(db_data['Вес'])
+    db_data = await db_read()
+
 
 
 
