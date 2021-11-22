@@ -1,7 +1,6 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
 from data_base.sqlite_db import db_add, db_fill
-from handlers.users.anthropometry_calc import anthropometry_calc
 from input_handling import answer_validate, state_translate, put_question_message_id, \
     delete_reply_markup
 from keyboards.inline.interrupt_buttons import choice
