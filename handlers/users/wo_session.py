@@ -44,7 +44,7 @@ async def get_exercise_params(message: Message, state: FSMContext):
             async with state.proxy() as data:
                 name_of_exercise, extra_weight, reps, sets = data.values()
             exercise = Exercise(name_of_exercise, extra_weight, reps, sets)
-            work = exercise.get_work()
+            work = await exercise.get_work()
             await message.answer('Работа равна {}'.format(work), reply_markup=exercise_keyboard)
             await state.reset_state()
             await WorkoutStates.workout.set()

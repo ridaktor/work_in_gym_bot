@@ -1,20 +1,27 @@
-from data_base.sqlite_db_OOP import DBCommands
+from data_base.sqlite_db_commands import DBCommands
 from input_handling import state_translate
-
 from loader import storage, dp
 from aiogram.types import Message
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
 from utils.set_bot_commands import set_default_commands
 from keyboards.default.data_buttons import data_keyboard
 
-anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_length', 'body_part_weight')
+anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_value', 'body_part_weight')
+exercise_db = DBCommands('exercise_parameters', 'exercise_name', 'moved_distance', 'sprung_weight')
 
 
 async def on_startup(dispatcher):
     """Set default commands and notify admins when bot starts"""
     await set_default_commands(dispatcher)
     await on_startup_notify(dispatcher)
-    await anthropometry_db.db_start()
+    await anthropometry_db.db_create()
+
+    await exercise_db.db_create()
+    await exercise_db.db_insert('exercise_name, moved_distance, sprung_weight', [('Приседания', 55, 70),
+                                                                                 ('Румынская тяга', 60, 60),
+                                                                                 ('Подтягивания', 35, 80)
+                                                                                 ])
+
 
 
 async def on_shutdown(dispatcher):
@@ -43,12 +50,12 @@ async def start_command(message: Message):
 @dp.message_handler(text='Просмотр данных')
 @dp.message_handler(commands='show_data')
 async def show_anthropometry(message: Message):
-    """Sends tha state_data collected"""
-    db_data = await anthropometry_db.db_read('body_part_name, body_part_length')
+    """Sends anthropometry data"""
+    db_data = await anthropometry_db.db_read('body_part_name, body_part_value')
     not_empty_rows = [i for i in db_data if i[1] is not None]
     if not_empty_rows:
-        body_part_name, body_part_length = zip(*not_empty_rows)
-        db_data_rus = dict(zip([await state_translate(name) for name in body_part_name], body_part_length))
+        body_part_name, body_part_value = zip(*not_empty_rows)
+        db_data_rus = dict(zip([await state_translate(name) for name in body_part_name], body_part_value))
         answer = '\n'.join(
             "{}: {} кг".format(k, v if v % 1 > 0 else int(v)) if k == 'Вес' else
             "{}: {} см".format(k, v if v % 1 > 0 else int(v)) for k, v in db_data_rus.items())
@@ -56,7 +63,6 @@ async def show_anthropometry(message: Message):
         await message.answer(answer, reply_markup=data_keyboard)
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
-
 
 # Bot startup
 if __name__ == '__main__':

@@ -1,5 +1,15 @@
-import asyncio
+from app import anthropometry_db
 
+
+body_weight = list(await anthropometry_db.db_read('body_part_value', "body_part_name = 'body_weight'"))[0][0]
+headless_weight = body_weight - (19.36 + 0.001722 * (body_weight ** 2)) ** 0.5
+await anthropometry_db.db_update('body_part_weight', 'body_part_name', ((body_weight - headless_weight, 'head_and_neck'),))
+
+torso_length = list(await anthropometry_db.db_read('body_part_value', "body_part_name = 'torso'"))[0][0]
+await anthropometry_db.db_update('body_part_weight', 'body_part_name', ((0.007452 * headless_weight * torso_length, 'torso'),))
+
+pelvis_length = list(await anthropometry_db.db_read('body_part_value', "body_part_name = 'pelvis'"))[0][0]
+await anthropometry_db.db_update('body_part_weight', 'body_part_name', ((0.00696 * headless_weight * pelvis_length, 'pelvis'),))
 
 
 # body_weight = db_data['body_weight']  # body weight in kg

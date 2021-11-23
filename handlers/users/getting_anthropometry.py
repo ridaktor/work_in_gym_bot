@@ -34,7 +34,7 @@ async def _state_switch_forward(message: Message, state: FSMContext):
         # Beginning of anthropometry collection
         translated_names = [name.replace('AnthropometryStates:', '') for name in
                             AnthropometryStates.all_states_names[1:-1]]
-        await anthropometry_db.db_insert('body_part_name', translated_names)
+        await anthropometry_db.db_insert('body_part_name', list(zip(translated_names)))
         await AnthropometryStates.first()
         await _state_switch_forward(message, state)
 

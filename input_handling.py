@@ -1,6 +1,6 @@
 import re
 from aiogram.utils.exceptions import MessageToEditNotFound, MessageNotModified
-from data_base.sqlite_db_OOP import DBCommands
+from data_base.sqlite_db_commands import DBCommands
 from loader import bot
 
 
@@ -87,6 +87,6 @@ async def close_anthropometry_state(state):
     async with state.proxy() as data:
         data.pop('question_message_id')
         reversed_tuple = tuple([t[::-1] for t in tuple(data.items())])
-    anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_length', 'body_part_weight')
-    await anthropometry_db.db_update('body_part_length', 'body_part_name', reversed_tuple)
+    anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_value', 'body_part_weight')
+    await anthropometry_db.db_update('body_part_value', 'body_part_name', reversed_tuple)
     await state.reset_state()
