@@ -1,8 +1,7 @@
 import asyncio
 
-from data_base.sqlite_db import db_read
 
-# db_data = dict(await db_read())
+
 # body_weight = db_data['body_weight']  # body weight in kg
 # headless_weight = body_weight \
 #                   - (19.36 + 0.001722 * (body_weight ** 2)) ** 0.5  # weight without weight of head and neck in kg

@@ -1,8 +1,8 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
-from data_base.sqlite_db import db_add, db_fill
+from app import anthropometry_db
 from input_handling import answer_validate, state_translate, put_question_message_id, \
-    delete_reply_markup
+    delete_reply_markup, close_anthropometry_state
 from keyboards.inline.interrupt_buttons import choice
 from keyboards.default.data_buttons import data_keyboard
 from states.anthropometry_states import AnthropometryStates
@@ -24,8 +24,7 @@ async def _state_switch_forward(message: Message, state: FSMContext):
             # End of anthropometry collection
             await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен',
                                    reply_markup=data_keyboard)
-            await db_add(state)
-            await state.reset_state()
+            await close_anthropometry_state(state)
         else:
             question_text = await state_translate(current_state, question=True)
             question_message = await bot.send_message(chat_id=message.from_user.id, text=question_text,
@@ -33,7 +32,9 @@ async def _state_switch_forward(message: Message, state: FSMContext):
             await put_question_message_id(question_message, state)
     else:
         # Beginning of anthropometry collection
-        await db_fill()
+        translated_names = [name.replace('AnthropometryStates:', '') for name in
+                            AnthropometryStates.all_states_names[1:-1]]
+        await anthropometry_db.db_insert('body_part_name', translated_names)
         await AnthropometryStates.first()
         await _state_switch_forward(message, state)
 
@@ -56,7 +57,6 @@ async def _get_anthropometry(message: Message, state: FSMContext):
 async def cancel_getting(call: CallbackQuery, state: FSMContext):
     """Abort data collection"""
     await call.message.delete_reply_markup()
-    await db_add(state)
-    await state.reset_state()
+    await close_anthropometry_state(state)
     await call.message.answer('Сбор данных прерван', reply_markup=data_keyboard)
     await call.answer('Вы отменили сбор', show_alert=True)
