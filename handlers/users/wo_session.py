@@ -1,13 +1,13 @@
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
+
+from handlers.users.anthropometry_calc import fill_body_part_weight_column, fill_movements
 from handlers.users.exercise import Exercise
 from input_handling import answer_validate, state_translate
 from keyboards.default.data_buttons import data_keyboard
-from keyboards.default.exercise_buttons import exercise_keyboard
+from keyboards.default.exercise_buttons import exercise_keyboard, exercise_buttons
 from loader import dp
 from states.wo_states import WorkoutStates
-
-exercise_list = ['Приседания', 'Румынская тяга', 'Подтягивания']
 
 
 @dp.message_handler(text='Начать тренировку', state=None)
@@ -16,9 +16,11 @@ async def start_wo(message: Message):
     """Start workout"""
     await message.answer('Тренировка начата, выбери упражнение', reply_markup=exercise_keyboard)
     await WorkoutStates.workout.set()
+    await fill_body_part_weight_column()
+    await fill_movements()
 
 
-@dp.message_handler(text=exercise_list, state="WorkoutStates:workout")
+@dp.message_handler(text=exercise_buttons, state="WorkoutStates:workout")
 async def select_exercise(message: Message, state: FSMContext):
     """Select exercise"""
     async with state.proxy() as data:

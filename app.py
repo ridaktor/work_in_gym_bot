@@ -6,8 +6,8 @@ from utils.notify_admins import on_startup_notify, on_shutdown_notify
 from utils.set_bot_commands import set_default_commands
 from keyboards.default.data_buttons import data_keyboard
 
-anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_value', 'body_part_weight')
-exercise_db = DBCommands('exercise_parameters', 'exercise_name', 'moved_distance', 'sprung_weight')
+anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_value REAL DEFAULT 0', 'body_part_weight')
+exercise_db = DBCommands('exercise_movements', 'exercise_name', 'moved_distance', 'sprung_weight')
 
 
 async def on_startup(dispatcher):
@@ -15,13 +15,7 @@ async def on_startup(dispatcher):
     await set_default_commands(dispatcher)
     await on_startup_notify(dispatcher)
     await anthropometry_db.db_create()
-
     await exercise_db.db_create()
-    await exercise_db.db_insert('exercise_name, moved_distance, sprung_weight', [('Приседания', 55, 70),
-                                                                                 ('Румынская тяга', 60, 60),
-                                                                                 ('Подтягивания', 35, 80)
-                                                                                 ])
-
 
 
 async def on_shutdown(dispatcher):
@@ -52,7 +46,7 @@ async def start_command(message: Message):
 async def show_anthropometry(message: Message):
     """Sends anthropometry data"""
     db_data = await anthropometry_db.db_read('body_part_name, body_part_value')
-    not_empty_rows = [i for i in db_data if i[1] is not None]
+    not_empty_rows = [i for i in db_data if i[1] != 0]
     if not_empty_rows:
         body_part_name, body_part_value = zip(*not_empty_rows)
         db_data_rus = dict(zip([await state_translate(name) for name in body_part_name], body_part_value))
@@ -64,8 +58,10 @@ async def show_anthropometry(message: Message):
     else:
         await message.answer('Данных нет', reply_markup=data_keyboard)
 
+
 # Bot startup
 if __name__ == '__main__':
     from aiogram import executor
     from handlers import dp
+
     executor.start_polling(dp, on_startup=on_startup, on_shutdown=on_shutdown)
