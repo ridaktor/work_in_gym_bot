@@ -62,9 +62,8 @@ async def fill_movements():
     #                                 }
     #              }
 
-
     # for exercise in exercise_list:
     #     tuple(zip(exercise_list))
-    await anthropometry_db.db_update('moved_distance, sprung_weight', 'exercise_name', (('Приседания', 32, 23),
-                                                                                        ('Румынская тяга', 3434, 234),
-                                                                                        ('Подтягивания', 45, 234)))
+    await exercise_db.db_update('moved_distance, sprung_weight', 'exercise_name', ((32, 23, 'Приседания'),
+                                                                                   (3434, 234, 'Румынская тяга'),
+                                                                                   (45, 234, 'Подтягивания')))

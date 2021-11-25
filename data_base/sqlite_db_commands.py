@@ -35,9 +35,10 @@ class DBCommands:
 
     async def db_update(self, column_name, row_name, value):
         """Updates data in a table"""
+        columns = [', '.join(['{} = ?'.format(i) for i in column_name.split(', ')])][0]
         async with aiosqlite.connect(DBCommands.db_name) as db:
             await db.executemany(
-                """UPDATE {} SET {} == ? WHERE {} == ?""".format(self.table_name, column_name, row_name), value)
+                """UPDATE {} SET {} WHERE {} = ?""".format(self.table_name, columns, row_name), value)
             await db.commit()
 
     async def db_read(self, column_list, condition=None):
