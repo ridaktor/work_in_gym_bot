@@ -5,6 +5,7 @@ from aiogram.types import Message
 from utils.notify_admins import on_startup_notify, on_shutdown_notify
 from utils.set_bot_commands import set_default_commands
 from keyboards.default.data_buttons import data_keyboard
+from keyboards.default.exercise_buttons import exercise_buttons
 
 anthropometry_db = DBCommands('anthropometry', 'body_part_name', 'body_part_value REAL DEFAULT 0', 'body_part_weight')
 exercise_db = DBCommands('exercise_movements', 'exercise_name', 'moved_distance', 'sprung_weight')
@@ -16,6 +17,7 @@ async def on_startup(dispatcher):
     await on_startup_notify(dispatcher)
     await anthropometry_db.db_create()
     await exercise_db.db_create()
+    await exercise_db.db_insert('exercise_name', list(zip(exercise_buttons)))
 
 
 async def on_shutdown(dispatcher):

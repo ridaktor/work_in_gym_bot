@@ -27,9 +27,8 @@ async def _state_switch_forward(message: Message, state: FSMContext):
             await close_anthropometry_state(state)
         else:
             question_text = await state_translate(current_state, question=True)
-            question_message = await bot.send_message(chat_id=message.from_user.id, text=question_text,
-                                                      reply_markup=choice)
-            await put_question_message_id(question_message, state)
+            question = await bot.send_message(chat_id=message.from_user.id, text=question_text, reply_markup=choice)
+            await put_question_message_id(question, state)
     else:
         # Beginning of anthropometry collection
         translated_names = [name.replace('AnthropometryStates:', '') for name in
@@ -47,9 +46,9 @@ async def _get_anthropometry(message: Message, state: FSMContext):
         await message.answer(valid_answer)
     else:
         current_state = await state.get_state()
-        state_name_without_prefix = current_state.replace('AnthropometryStates:', '')
+        state_name = current_state.replace('AnthropometryStates:', '')
         async with state.proxy() as data:
-            data[state_name_without_prefix] = valid_answer
+            data[state_name] = valid_answer
         await _state_switch_forward(message, state)
 
 

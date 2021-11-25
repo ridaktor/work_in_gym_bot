@@ -72,10 +72,9 @@ async def put_question_message_id(question, state):
 async def delete_reply_markup(message, state):
     """Deletes inline buttons"""
     async with state.proxy() as data:
-        question_message_id = data['question_message_id'] if 'question_message_id' in data else None
+        message_id = data['question_message_id'] if 'question_message_id' in data else None
     try:
-        await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=question_message_id,
-                                            reply_markup=None)
+        await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=message_id, reply_markup=None)
     except MessageToEditNotFound:
         pass
     except MessageNotModified:

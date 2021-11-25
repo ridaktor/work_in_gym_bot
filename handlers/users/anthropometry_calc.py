@@ -1,6 +1,5 @@
 import math
 from app import anthropometry_db, exercise_db
-from keyboards.default.exercise_buttons import exercise_buttons
 
 
 async def shortening(height, angle):
@@ -31,39 +30,40 @@ async def fill_body_part_weight_column():
 
 
 async def fill_movements():
-    await exercise_db.db_insert('exercise_name', list(zip(exercise_buttons)))
+    """"""
+    body_part_weight = dict(await anthropometry_db.db_read('body_part_name, body_part_weight'))
+    body_part_value = dict(await anthropometry_db.db_read('body_part_name, body_part_value'))
+    movements = {'Приседания': {'sprung_weight': body_part_weight['femur'] / (2 * math.sin(math.radians(83 - 13)))
+                                                 + sum(body_part_weight[key] for key in ['head_and_neck', 'torso',
+                                                                                         'pelvis', 'humerus', 'forearm',
+                                                                                         'hand']),
+                                'moved_distance': await shortening(body_part_value['tibia'], 10)
+                                                  + await shortening(body_part_value['femur'], 13)
+                                                  + await shortening(body_part_value['pelvis'] + body_part_value['torso'], 11)
+                                                  - await shortening(body_part_value['tibia'], 36)
+                                                  - await shortening(body_part_value['femur'], 83)
+                                                  - await shortening(body_part_value['pelvis'] + body_part_value['torso'], 39)
+                                },
+                 'Румынская тяга': {'sprung_weight': (body_part_weight['torso'] + body_part_weight['pelvis']) / (2 * math.sin(math.radians(78)))
+                                                     + sum(body_part_weight[key] for key in ['head_and_neck', 'humerus', 'forearm', 'hand']),
+                                    'moved_distance': sum(body_part_value[key] for key in ['pelvis', 'torso'])
+                                                      + await shortening(body_part_value['tibia'], 7)
+                                                      + await shortening(body_part_value['femur'], 19)
+                                                      - await shortening(body_part_value['tibia'], 3)
+                                                      - await shortening(body_part_value['femur'], 30)
+                                                      - await shortening(body_part_value['pelvis'] + body_part_value['torso'], 78)
+                                    },
+                 'Подтягивания': {'sprung_weight': body_part_value['body_weight']
+                                                   - sum(body_part_weight[key] for key in ['forearm', 'hand']),
+                                  'moved_distance': sum(body_part_value[key] for key in ['forearm', 'humerus'])
+                                  }
+                 }
 
-    # movements = {'Приседания': {'sprung_weight': body_part_weight['head_and_neck'] + body_part_weight['torso']
-    #                                              + body_part_weight['pelvis']
-    #                                              + body_part_weight['femur'] / (2 * math.sin(math.radians(83 - 13)))
-    #                                              + body_part_weight['humerus'] + body_part_weight['forearm']
-    #                                              + body_part_weight['hand'],
-    #                             'moved_distance': shortening(body_part_length['tibia'], 10)
-    #                                               + shortening(body_part_length['femur'], 13)
-    #                                               + shortening(body_part_length['pelvis'] + body_part_length['torso'],
-    #                                                            11)
-    #                                               - shortening(body_part_length['tibia'], 36)
-    #                                               - shortening(body_part_length['femur'], 83)
-    #                                               - shortening(body_part_length['pelvis'] + body_part_length['torso'],
-    #                                                            39)
-    #                             },
-    #              'Румынская тяга': {'sprung_weight': body_part_weight['head_and_neck']
-    #                                                  + (body_part_weight['torso'] + body_part_weight['pelvis'])
-    #                                                  / (2 * math.sin(math.radians(78)))
-    #                                                  + body_part_weight['humerus'] + body_part_weight['forearm']
-    #                                                  + body_part_weight['hand'],
-    #                                 'moved_distance': shortening(body_part_length['tibia'], 7)
-    #                                                   + shortening(body_part_length['femur'], 19)
-    #                                                   + body_part_length['pelvis'] + body_part_length['torso']
-    #                                                   - shortening(body_part_length['tibia'], 3)
-    #                                                   - shortening(body_part_length['femur'], 30)
-    #                                                   - shortening(
-    #                                     body_part_length['pelvis'] + body_part_length['torso'], 78)
-    #                                 }
-    #              }
-
-    # for exercise in exercise_list:
-    #     tuple(zip(exercise_list))
-    await exercise_db.db_update('moved_distance, sprung_weight', 'exercise_name', ((32, 23, 'Приседания'),
-                                                                                   (3434, 234, 'Румынская тяга'),
-                                                                                   (45, 234, 'Подтягивания')))
+    list_of_data = []
+    for exercise_name in movements.keys():
+        dataset = []
+        for movement in movements[exercise_name]:
+            dataset.append(movements[exercise_name][movement])
+        dataset.append(exercise_name)
+        list_of_data.append(tuple(dataset))
+    await exercise_db.db_update('moved_distance, sprung_weight', 'exercise_name', tuple(list_of_data))
