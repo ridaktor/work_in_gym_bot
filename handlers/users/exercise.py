@@ -3,6 +3,7 @@ from app import exercise_db
 
 class Exercise:
     g = 9.81  # Gravitational acceleration
+    avg_time_of_one_rep = 3
 
     def __init__(self, name_of_exercise, extra_weight, numb_of_reps, numb_of_sets):
         self.name_of_exercise = name_of_exercise
@@ -20,3 +21,6 @@ class Exercise:
         moved_distance = await self._get_movements('moved_distance')
         return self.numb_of_sets * (
                 (sprung_weight + self.extra_weight) * self.g * moved_distance * self.numb_of_reps * 0.01)
+
+    async def get_power(self):
+        return await self.get_work() / self.numb_of_reps * self.avg_time_of_one_rep * self.numb_of_sets

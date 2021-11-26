@@ -11,12 +11,11 @@ from states.wo_states import WorkoutStates
 
 
 @dp.message_handler(text='Начать тренировку', state=None)
-@dp.message_handler(commands='wo_start', state=None)
+@dp.message_handler(commands='start_wo', state=None)
 async def start_wo(message: Message):
     """Start workout"""
     await message.answer('Тренировка начата, выбери упражнение', reply_markup=exercise_keyboard)
     await WorkoutStates.workout.set()
-    await fill_body_part_weight_column()
     await fill_movements()
 
 
@@ -47,7 +46,8 @@ async def get_exercise_params(message: Message, state: FSMContext):
                 name_of_exercise, extra_weight, reps, sets = data.values()
             exercise = Exercise(name_of_exercise, extra_weight, reps, sets)
             work = await exercise.get_work()
-            await message.answer('Работа равна {}'.format(work), reply_markup=exercise_keyboard)
+            power = await exercise.get_power()
+            await message.answer('Работа равна {} Дж Мощность равна {} Вт'.format(round(work, 1), round(power, 1)), reply_markup=exercise_keyboard)
             await state.reset_state()
             await WorkoutStates.workout.set()
         else:

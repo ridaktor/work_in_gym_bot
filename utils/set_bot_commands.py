@@ -6,6 +6,6 @@ async def set_default_commands(dp):
         [
             types.BotCommand("help", "Вывести справку"),
             types.BotCommand("enter_data", "Ввести данные антропометрии"),
-            types.BotCommand("wo_start", "Начать тренировку"),
+            types.BotCommand("start_wo", "Начать тренировку"),
         ]
     )

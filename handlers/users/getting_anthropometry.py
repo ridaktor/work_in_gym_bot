@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.dispatcher import FSMContext
 from app import anthropometry_db
+from handlers.users.anthropometry_calc import fill_body_part_weight_column
 from input_handling import answer_validate, state_translate, put_question_message_id, \
     delete_reply_markup, close_anthropometry_state
 from keyboards.inline.interrupt_buttons import choice
@@ -22,9 +23,21 @@ async def _state_switch_forward(message: Message, state: FSMContext):
         current_state = await state.get_state()
         if current_state == 'AnthropometryStates:the_end':
             # End of anthropometry collection
-            await bot.send_message(chat_id=message.from_user.id, text='Сбор данных завершен',
-                                   reply_markup=data_keyboard)
             await close_anthropometry_state(state)
+            warning = await fill_body_part_weight_column()
+            if warning:
+                await bot.send_message(chat_id=message.from_user.id,
+                                       text="Сбор данных завершен, но измерения имеют большую погрешность или не все "
+                                            "данные внесены, рекомендуется повторить измерения "
+                                            "\n/show_data - посмотреть введенные данные"
+                                            "\n/enter_data - ввести данные",
+                                       reply_markup=data_keyboard)
+            else:
+                await bot.send_message(chat_id=message.from_user.id, text="Сбор данных успешно завершен, можно "
+                                                                          "тренироватсья"
+                                                                          "\n/start_wo - начать тренировку",
+                                       reply_markup=data_keyboard)
+
         else:
             question_text = await state_translate(current_state, question=True)
             question = await bot.send_message(chat_id=message.from_user.id, text=question_text, reply_markup=choice)
@@ -57,5 +70,16 @@ async def cancel_getting(call: CallbackQuery, state: FSMContext):
     """Abort data collection"""
     await call.message.delete_reply_markup()
     await close_anthropometry_state(state)
-    await call.message.answer('Сбор данных прерван', reply_markup=data_keyboard)
-    await call.answer('Вы отменили сбор', show_alert=True)
+    warning = await fill_body_part_weight_column()
+    if warning:
+        await call.message.answer("Сбор данных прерван. Имеется большая погрешность или не все данные внесены, "
+                                  "рекомендуется потворно ввести данные."
+                                  "\n/show_data - посмотреть введенные данные"
+                                  "\n/enter_data - ввести данные",
+                                  reply_markup=data_keyboard)
+        await call.answer('Вы отменили сбор', show_alert=True)
+    else:
+        await call.message.answer("Изменения успешно внесены, можно тренироватсья\n/start_wo - начать тренировку",
+                                  reply_markup=data_keyboard)
+        await call.answer('Вы отменили сбор', show_alert=True)
+
